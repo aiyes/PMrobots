@@ -2,10 +2,9 @@ from flask import Flask,request,jsonify
 import json
 
 import time
-from APP.TBRobotCon import Method
+from APP.TBRobotCon import Method,set_zero
 
 app = Flask(__name__)
-
 
 @app.route('/')
 def hello_world():
@@ -13,6 +12,7 @@ def hello_world():
 
 @app.route('/askpricesh',methods=['POST'])
 def Ask_Price_SH():
+    set_zero()
     data = request.get_data()
     j_data=json.loads(data.decode())
     MD=Method()
@@ -21,4 +21,5 @@ def Ask_Price_SH():
 
 
 if __name__ == '__main__':
-    app.run(host='192.168.98.142')
+    app.run()
+    #app.run(host='192.168.98.142')

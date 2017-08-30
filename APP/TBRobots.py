@@ -127,14 +127,14 @@ class Robot(object):
 
 #==========================测试代码========================================================
 data={'ciInsurerCom':'YGBX','LicenseNo':'沪GC6653','detaillist':{'SJX':'30000','CSX':'1','DSFZRX':'200000','DSFZRX_BJMP':'1','SSX':'1','SSX_BJMP':'1','BLX':'1','CSX_BJMP':'1'}}
-
+'''
 RB=Robot()
 br,cookies=RB.login()
 time.sleep(2)
 while True:
     br.refresh()
     time.sleep(30)
-    '''
+
 while True:
     flag=input('flag:')
     dic=data
