@@ -6,7 +6,7 @@ from selenium.webdriver.common.keys import Keys
 import requests,time
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
-from APP.TBRobotBackControl import Method_ASK_TB,Method_Get_TB
+from APP.TBRobotBackControl import Method_ASK_TB,Method_Get_TB,ImageCode
 import copy
 
 
@@ -50,7 +50,10 @@ class Robot(object):
 
     #登录信息
     def SendLogMess(self,browser):
-        code = input('please input verifycode:')
+        cookie = [item["name"] + "=" + item["value"] for item in self.browser.get_cookies()]
+        cookiestr = ';'.join(item for item in cookie)
+        #code = input('please input verifycode:')
+        code=ImageCode(cookiestr=cookiestr)
         username=browser.find_element_by_id('j_username')
         username.clear()
         username.send_keys('w_n008')

@@ -5,8 +5,32 @@ from selenium.webdriver.common.keys import Keys
 import requests,time
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
+import base64
 
+def ImageCode(cookiestr):
+    header = {
+        'Host': 'issue.cpic.com.cn',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
+        'Accept-Encoding': 'gzip, deflate',
+        'Cookie': cookiestr,
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Cache-Control': 'max-age=0',
 
+    }
+    url2 = 'http://issue.cpic.com.cn/ecar/auth/getCaptchaImage'
+    capt = requests.get(url2, headers=header)
+    # im = Image.open(io.BytesIO(capt.content))
+    base64_data = base64.b64encode(capt.content)
+    url2 = 'http://api.jisuapi.com/captcha/recognize'
+    data2 = {'appkey': 'd5a9798f00f84bfc',
+             'type': 'en4',
+             'pic': base64_data}
+    req2 = requests.post(url=url2, data=data2)
+    info = req2.json()
+    return info['result']['code']
 
 
 class Method_ASK_TB(object):

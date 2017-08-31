@@ -20,15 +20,15 @@ def timesleep():
         browser.refresh()
         sleeptime=0
 
-def set_zero():
-    global sleeptime
-    sleeptime=0
 
 t1=threading.Thread(target=timesleep)
 t1.start()
 
 #--------------------------------------------
 
+def set_zero():
+    global sleeptime
+    sleeptime=0
 
 class Method(object):
     def __init__(self,robots=RB,browser=browser,cookies=cookies):

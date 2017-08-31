@@ -1,6 +1,5 @@
 from flask import Flask,request,jsonify
 import json
-
 import time
 from APP.TBRobotCon import Method,set_zero
 
