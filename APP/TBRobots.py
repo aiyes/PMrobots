@@ -7,7 +7,9 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
 from APP.TBRobotBackControl import Method_ASK_TB,Method_Get_TB,ImageCode
 from APP.TBRobotWarnDeal import WarnDeal
+from APP.TBrobotSqlhelper import Car
 import copy
+import datetime
 
 
 url='http://issue.cpic.com.cn/ecar/view/portal/page/common/login.html'
@@ -76,23 +78,38 @@ class Robot(object):
         browser.find_element_by_id('motorcycleTypeSearch').click()
         #两步查询
 
-        while True:
-            try:
-                divtab = browser.find_element_by_id('carTypeDialog')
-                divtab.find_element_by_name('carInfomation').click()
-                divtab.find_element_by_class_name('confirm').click()
-                break
-            except:
-                time.sleep(0.5)
+        warn=WarnDeal(browser)
+        info=warn.CarIfWarn()
+        print(info)
+        return info
 
-        dialog=browser.find_element_by_id('dialogTemplet')
-        while True:
-            try:
-                dialog.find_element_by_name('riskInfomation').click()
-                dialog.find_element_by_class_name('confirm').click()
-                break
-            except:
-                time.sleep(0.5)
+
+    def findcarinfoWD(self, browser, LicenseNo):
+        SearchCar=Car(LicentseNo=LicenseNo)
+        Carinfo=SearchCar.SearchInDatebase()
+        print(Carinfo)
+        #填写车辆信息
+        ownername = browser.find_element_by_name('ownerName')
+        ownername.send_keys(Carinfo['car_owner'])
+        license = browser.find_element_by_id('plateNo')
+        license.clear()
+        license.send_keys(LicenseNo)
+        carvin = browser.find_element_by_id('carVIN')
+        carvin.clear()
+        carvin.send_keys(Carinfo['frame_no'])
+        engineNo = browser.find_element_by_id('engineNo')
+        engineNo.send_keys(Carinfo['engine_no'])
+        registerDate = browser.find_element_by_id('stRegisterDate')
+        registerDate.send_keys(Carinfo['enroll_date'].strftime('%Y-%m-%d'))
+
+        browser.find_element_by_id('VINSearch').click()
+        warn=WarnDeal(browser)
+        info=warn.CarIfWarn()
+        print(info)
+        return info
+
+
+
 
     def Baojia(self,browser,dic):
         dic1=copy.deepcopy(dic)
@@ -126,24 +143,21 @@ class Robot(object):
 
 #==========================测试代码========================================================
 '''
-data={'ciInsurerCom':'YGBX','LicenseNo':'沪GC6653','detaillist':{'CCS':'1','JQX':'1','CSX':'1','DSFZRX':'200000','DSFZRX_BJMP':'1','SSX':'1','BLX':'1'}}
+data={'carNo': '沪B9C858', 'details': {'DSFZRX': '500000', 'DSFZRX_BJMP': '500000', 'CSX_BJMP': 'true', 'JQX': 'true', 'CSX': 'true', 'CCS': 'true'}, 'ciInsurerCom': '太平洋保险'}
 
 RB=Robot()
 br,cookies=RB.login()
 time.sleep(2)
 
-while True:
-    br.refresh()
-    time.sleep(30)
 
 while True:
     flag=input('flag:')
     dic=data
-    LicenseNo=dic['LicenseNo']
+    LicenseNo=dic['carNo']
     info=RB.findcarinfoSH(browser=br,LicenseNo=LicenseNo)
     baojia=RB.Baojia(browser=br,dic=dic)
-    print(baojia)'''
-
+    print(baojia)
+'''
 
 
 

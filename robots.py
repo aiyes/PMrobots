@@ -15,12 +15,26 @@ def Ask_Price_SH():
     try:
         data = request.get_data()
         j_data=json.loads(data.decode())
+        print(j_data)
         MD=Method()
         info=MD.AskPrice_SH_MN(dic=j_data)
         return jsonify(info)
     except Exception as e:
-        return jsonify({'flag':500,'infomation':e})
+        return jsonify({'flag': 500, 'infomation': e})
 
+
+
+@app.route('/askpricewd',methods=['POST'])
+def Ask_Price_WD():
+    set_zero()
+    try:
+        data = request.get_data()
+        j_data=json.loads(data.decode())
+        MD=Method()
+        info=MD.AskPrice_WD_MN(dic=j_data)
+        return jsonify(info)
+    except Exception as e:
+        return jsonify({'flag':500,'infomation':e})
 
 if __name__ == '__main__':
     app.run()

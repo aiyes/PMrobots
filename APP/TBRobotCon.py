@@ -17,10 +17,9 @@ def timesleep():
     global browser
     global sleeptime
     while True:
-        while sleeptime<=30:
+        while sleeptime<=40:
             time.sleep(1)
             sleeptime+=1
-            print(sleeptime)
         browser.refresh()
         sleeptime=0
 
@@ -44,7 +43,10 @@ class Method(object):
     def AskPrice_SH_MN(self,dic):
         while True:
             try:
-                info = self.robots.findcarinfoSH(browser=self.browser, LicenseNo=dic['LicenseNo'])
+                info = self.robots.findcarinfoSH(browser=self.browser, LicenseNo=dic['carNo'])
+                if info==False:
+                    message={'isSuccess':'500','message':'车辆信息有误'}
+                    return message
                 baojia = self.robots.Baojia(browser=self.browser, dic=dic)
                 self.browser.refresh()
                 return baojia
@@ -55,6 +57,16 @@ class Method(object):
                 else:
                     self.browser,self.cookies=self.robots.login()
                     continue
+
+    def AskPrice_WD_MN(self,dic):
+        while True:
+            try:
+                info=self.robots.findcarinfoWD(browser=self.browser,LicenseNo=dic['LicenseNo'])
+                if info == False:
+                    message={'isSuccess':'500','message':'车辆信息有误'}
+                    return message
+            except:
+                pass
 
 
 

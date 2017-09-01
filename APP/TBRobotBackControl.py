@@ -19,7 +19,6 @@ def ImageCode(cookiestr):
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1',
         'Cache-Control': 'max-age=0',
-
     }
     url2 = 'http://issue.cpic.com.cn/ecar/auth/getCaptchaImage'
     capt = requests.get(url2, headers=header)
@@ -45,7 +44,7 @@ def TaxType(num):
 class Method_ASK_TB(object):
     def __init__(self,browser,dic):
         self.browser=browser
-        self.detaillist=dic['detaillist']
+        self.detaillist=dic['details']
 
     def Askprice(self):
         #车损险必选
@@ -159,7 +158,7 @@ class Method_Get_TB(object):
     def __init__(self,browser,dic):
         self.browser=browser
         self.quotetable = browser.find_element_by_id('quoteInsuranceTable')
-        self.detaillist=dic['detaillist']
+        self.detaillist=dic['details']
 
     def GetPremium(self):
         info=[]
