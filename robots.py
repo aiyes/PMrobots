@@ -12,11 +12,14 @@ def hello_world():
 @app.route('/askpricesh',methods=['POST'])
 def Ask_Price_SH():
     set_zero()
-    data = request.get_data()
-    j_data=json.loads(data.decode())
-    MD=Method()
-    info=MD.AskPrice_SH_MN(dic=j_data)
-    return jsonify(info)
+    try:
+        data = request.get_data()
+        j_data=json.loads(data.decode())
+        MD=Method()
+        info=MD.AskPrice_SH_MN(dic=j_data)
+        return jsonify(info)
+    except Exception as e:
+        return jsonify({'flag':500,'infomation':e})
 
 
 if __name__ == '__main__':

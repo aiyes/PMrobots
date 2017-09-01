@@ -2,13 +2,12 @@
 # -*- coding: UTF-8 -*-
 
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-import requests,time
-from selenium.webdriver.common.action_chains import ActionChains
+import time
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.keys import Keys
 from APP.TBRobotBackControl import Method_ASK_TB,Method_Get_TB,ImageCode
+from APP.TBRobotWarnDeal import WarnDeal
 import copy
-
 
 
 url='http://issue.cpic.com.cn/ecar/view/portal/page/common/login.html'
@@ -19,7 +18,6 @@ class Robot(object):
         self.url=url
         self.cert=cert
         self.browser = webdriver.Chrome()
-
 
     def login(self):
         '''
@@ -52,8 +50,8 @@ class Robot(object):
     def SendLogMess(self,browser):
         cookie = [item["name"] + "=" + item["value"] for item in self.browser.get_cookies()]
         cookiestr = ';'.join(item for item in cookie)
-        #code = input('please input verifycode:')
-        code=ImageCode(cookiestr=cookiestr)
+        code = input('please input verifycode:')#手动输入验证码
+        #code=ImageCode(cookiestr=cookiestr)#第三方接口自动识别验证码
         username=browser.find_element_by_id('j_username')
         username.clear()
         username.send_keys('w_n008')
@@ -101,27 +99,25 @@ class Robot(object):
         dic2=copy.deepcopy(dic)#复制两份分别作为查询和获得表单用
         certype=Select(browser.find_element_by_id('certType'))#选择证件类型为身份证
         certype.select_by_value('1')
-        #传身份证号
-        browser.find_element_by_id('certNo').send_keys(self.cert)
+        browser.find_element_by_id('certNo').send_keys(self.cert)#传身份证号
         el = browser.find_element_by_xpath("//input[@insured-name='certificateCode']")
         el.clear()
         el.send_keys(self.cert)
-        #取消交强险报价
-        browser.find_element_by_id('compulsoryInput').send_keys(Keys.SPACE)
+        browser.find_element_by_id('compulsoryInput').send_keys(Keys.SPACE)#取消交强险报价
         ASK=Method_ASK_TB(browser=browser,dic=dic1)
         ASK.Askprice()
         browser.find_element_by_id('premiumTrial').click()#报价
         while True:
             try:
-                warn = browser.find_element_by_class_name('float-content')
-                warn.find_element_by_xpath("//a[text()='关闭']").click()#关闭警告
+                deal=WarnDeal(browser)
+                deal.Baojiawarn()
                 break
             except:
                 time.sleep(0.5)
         GET=Method_Get_TB(browser=browser,dic=dic2)
         detail=GET.GetPremium()
         info={
-            'flag':200,
+            'isSuccess':200,
             'detaillist':detail
         }
         return info
@@ -129,11 +125,13 @@ class Robot(object):
 
 
 #==========================测试代码========================================================
-data={'ciInsurerCom':'YGBX','LicenseNo':'沪GC6653','detaillist':{'SJX':'30000','CSX':'1','DSFZRX':'200000','DSFZRX_BJMP':'1','SSX':'1','SSX_BJMP':'1','BLX':'1','CSX_BJMP':'1'}}
 '''
+data={'ciInsurerCom':'YGBX','LicenseNo':'沪GC6653','detaillist':{'CCS':'1','JQX':'1','CSX':'1','DSFZRX':'200000','DSFZRX_BJMP':'1','SSX':'1','BLX':'1'}}
+
 RB=Robot()
 br,cookies=RB.login()
 time.sleep(2)
+
 while True:
     br.refresh()
     time.sleep(30)

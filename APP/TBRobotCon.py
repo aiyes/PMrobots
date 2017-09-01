@@ -6,8 +6,12 @@ import threading
 
 #------------------------------------------
 #开机自动运行部分
-RB = Robot()
-browser, cookies = RB.login()
+try:
+    RB = Robot()
+    browser, cookies = RB.login()
+except Exception as e:
+    print(e)
+
 sleeptime=0
 def timesleep():
     global browser

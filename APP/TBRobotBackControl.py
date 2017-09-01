@@ -7,6 +7,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
 import base64
 
+#自动验证码识别接口
 def ImageCode(cookiestr):
     header = {
         'Host': 'issue.cpic.com.cn',
@@ -32,6 +33,14 @@ def ImageCode(cookiestr):
     info = req2.json()
     return info['result']['code']
 
+#根据排量选择车辆排量选择税务车辆类型
+def TaxType(num):
+    table=[1.0,1.6,2.0,2.5,3.0,4.0,100.0]
+    tablevalue=['K01','K02','K03','K04', 'K05', 'K06','K07']
+    for i in range(len(table)):
+        if table[i]>=num:
+            return tablevalue[i]
+
 
 class Method_ASK_TB(object):
     def __init__(self,browser,dic):
@@ -46,6 +55,14 @@ class Method_ASK_TB(object):
                 eval('self.{}'.format(item))()
             except:
                 continue
+    #交强险
+    def JQX(self):
+        self.browser.find_element_by_id('compulsoryInput').send_keys(Keys.SPACE)
+        capacity = float(self.browser.find_element_by_id('engineCapacity').get_attribute('value'))
+        TVType = Select(self.browser.find_element_by_name('taxVehicleType'))
+        TVType.select_by_value(TaxType(capacity))
+    #车船税
+    def CCS(self):pass
     #车损险
     def CSX(self):
         if 'CSX_BJMP' in self.detaillist:
@@ -140,6 +157,7 @@ class Method_ASK_TB(object):
 
 class Method_Get_TB(object):
     def __init__(self,browser,dic):
+        self.browser=browser
         self.quotetable = browser.find_element_by_id('quoteInsuranceTable')
         self.detaillist=dic['detaillist']
 
@@ -159,6 +177,16 @@ class Method_Get_TB(object):
             'prmValue':value,
         }
         return dic
+    #交强险
+    def JQX(self,info):
+        value=self.browser.find_element_by_id('cipremium').text
+        info.append(self.infodic('JQX', self.detaillist['JQX'], value))
+        return info
+    #车船税
+    def CCS(self,info):
+        value=self.browser.find_element_by_id('taxAmount').text
+        info.append(self.infodic('CCS', self.detaillist['CCS'], value))
+        return info
     #车损险
     def CSX(self,info):
         value=self.quotetable.find_element_by_xpath("./tbody/tr[1]/td[5]").text
