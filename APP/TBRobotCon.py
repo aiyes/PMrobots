@@ -6,41 +6,54 @@ import threading
 
 #------------------------------------------
 #开机自动运行部分
-try:
-    RB = Robot()
-    browser, cookies = RB.login()
-except Exception as e:
-    print(e)
+class Run(object):
+    def __init__(self):
+        self.robots = Robot()
+        self.browser, self.cookies = self.robots.login()
+        self.sleeptime = 0
+        sleeptime = 0
+        t1 = threading.Thread(target=self.timesleep)
+        t1.start()
 
-sleeptime=0
-def timesleep():
-    global browser
-    global sleeptime
-    while True:
-        while sleeptime<=40:
-            time.sleep(1)
-            sleeptime+=1
-        browser.refresh()
-        sleeptime=0
+    def timesleep(self):
+        while True:
+            while self.sleeptime <= 240:
+                time.sleep(1)
+                self.sleeptime += 1
+                print(self.sleeptime)
+            self.browser.refresh()
+            self.sleeptime = 0
 
+    def set_zero(self):
+        self.sleeptime = 0
+        return self.sleeptime
 
-t1=threading.Thread(target=timesleep)
-t1.start()
+RB = Run()
 
 #--------------------------------------------
+#检查网页打开是否正确
+def is_ok():
+    global RB
+    RB.browser.refresh()
+    righturl='http://issue.cpic.com.cn/ecar/view/portal/page/quick_quotation/quick_quotation.html'
+    while True:
+        if righturl in RB.browser.current_url:
+            break
+        else:
+            RB.robots.login()
 
-def set_zero():
-    global sleeptime
-    sleeptime=0
+
 
 class Method(object):
-    def __init__(self,robots=RB,browser=browser,cookies=cookies):
-        self.robots=robots
-        self.browser=browser
-        self.cookies=cookies
-
+    def __init__(self):
+        global RB
+        self.run=RB
+        self.robots=RB.robots
+        self.cookies=RB.cookies
+        self.browser=RB.browser
 
     def AskPrice_SH_MN(self,dic):
+        self.run.set_zero()
         while True:
             try:
                 info = self.robots.findcarinfoSH(browser=self.browser, LicenseNo=dic['carNo'])
@@ -59,6 +72,7 @@ class Method(object):
                     continue
 
     def AskPrice_WD_MN(self,dic):
+        self.run.set_zero()
         while True:
             try:
                 info=self.robots.findcarinfoWD(browser=self.browser,LicenseNo=dic['LicenseNo'])
