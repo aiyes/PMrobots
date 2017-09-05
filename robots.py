@@ -26,7 +26,6 @@ def Ask_Price_SH():
         return jsonify({'flag': 500, 'infomation': e})
 
 
-
 @app.route('/askpricewd',methods=['POST'])
 def Ask_Price_WD():
     is_ok()

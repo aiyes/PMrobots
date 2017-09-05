@@ -9,11 +9,12 @@ from APP.TBRobotBackControl import Method_ASK_TB,Method_Get_TB,ImageCode
 from APP.TBRobotWarnDeal import WarnDeal
 from APP.TBrobotSqlhelper import Car
 import copy,requests,json
+from selenium.webdriver.support.wait import WebDriverWait
 import datetime
 
 
 url='http://issue.cpic.com.cn/ecar/view/portal/page/common/login.html'
-testcert='530302199406170354'
+testcert='123321'
 
 class Robot(object):
     def __init__(self,url=url,cert=testcert):
@@ -23,31 +24,25 @@ class Robot(object):
         self.browser = webdriver.Chrome(self.driverpath)
 
     def login(self):
-        '''
-        # profile
-        fp = webdriver.FirefoxProfile()
-        fp.set_preference('browser.download.folderList', 2)
-        fp.set_preference('browser.download.manager.showWhenStarting', False)
-        fp.set_preference('browser.download.dir', './yourfolder/')
-        fp.set_preference('browser.helperApps.neverAsk.saveToDisk', 'image/jpeg')'''
 
         # browser
         self.browser.get(self.url)
         while True:
-            if self.browser.current_url=='http://issue.cpic.com.cn/ecar/view/portal/page/common/login.html':
+            if self.browser.current_url==self.url:
                 self.SendLogMess(self.browser)#登录
             else:
                 break
 
-
+        WebDriverWait(self.browser, 2, 0.5).until(lambda browser: browser.find_element_by_id('loginBtn'))
         self.browser.find_element_by_id('loginBtn').click()
-        time.sleep(2)
+        time.sleep(1)
+        WebDriverWait(self.browser, 3, 0.5).until(lambda browser: browser.find_element_by_class_name('bg-white'))
         self.browser.find_element_by_class_name('bg-white').click()
-        time.sleep(2)
         # getcookie
-        cookie = [item["name"] + "=" + item["value"] for item in self.browser.get_cookies()]
+        cookies = self.browser.get_cookies()
+        cookie = [item["name"] + "=" + item["value"] for item in cookies]
         cookiestr = ';'.join(item for item in cookie)
-        return self.browser,cookiestr
+        return self.browser,cookies,cookiestr
 
     #登录信息
     def SendLogMess(self,browser):
@@ -66,7 +61,16 @@ class Robot(object):
         time.sleep(2)
 
     #沪牌车信息传入
-    def findcarinfoSH(self,browser,LicenseNo):
+    def findcarinfoSH(self,cookies,LicenseNo):
+        urlquote = 'http://issue.cpic.com.cn/ecar/view/portal/page/quick_quotation/quick_quotation.html'
+        #打开新窗口
+        browser=webdriver.Chrome(self.driverpath)
+        browser.get(urlquote)
+        browser.delete_all_cookies()
+        for cookie in cookies:
+            browser.add_cookie(cookie)
+
+        browser.get(urlquote)
         #传车牌号
         while True:
             try:
@@ -82,7 +86,8 @@ class Robot(object):
         warn=WarnDeal(browser)
         info=warn.CarIfWarn()
         print(info)
-        return info
+
+        return info,browser
 
     #外地车信息传入
     def findcarinfoWD(self, browser, LicenseNo):
@@ -114,15 +119,24 @@ class Robot(object):
         dic1=copy.deepcopy(dic)
         dic2=copy.deepcopy(dic)#复制两份分别作为查询和获得表单用
         certype=Select(browser.find_element_by_id('certType'))#选择证件类型为身份证
-        certype.select_by_value('1')
+        certype.select_by_value('2')
         browser.find_element_by_id('certNo').send_keys(self.cert)#传身份证号
         el = browser.find_element_by_xpath("//input[@insured-name='certificateCode']")
         el.clear()
         el.send_keys(self.cert)
         browser.find_element_by_id('compulsoryInput').send_keys(Keys.SPACE)#取消交强险报价
+        # 时间统一调整至30天后
+        now = datetime.datetime.now()
+        d = now + datetime.timedelta(days=30)
+        dstr = d.strftime('%Y-%m-%d 00:00')
+        startdate = browser.find_element_by_id('commercialStartDate')
+        startdate.click()
+        startdate.clear()
+        startdate.send_keys(dstr)
+        # 报价
         ASK=Method_ASK_TB(browser=browser,dic=dic1)
         ASK.Askprice()
-        browser.find_element_by_id('premiumTrial').click()#报价
+        browser.find_element_by_id('premiumTrial').click()
         while True:
             try:
                 deal=WarnDeal(browser)
@@ -173,6 +187,7 @@ class Robot(object):
 
 #==========================测试代码========================================================
 '''
+import threading
 data={'carNo': '沪B9C858', 'details': {'DSFZRX': '500000', 'DSFZRX_BJMP': '500000', 'CSX_BJMP': 'true', 'JQX': 'true', 'CSX': 'true', 'CCS': 'true'}, 'ciInsurerCom': '太平洋保险'}
 
 RB=Robot()
@@ -180,18 +195,21 @@ br,cookies=RB.login()
 time.sleep(2)
 
 
+
 while True:
     flag=input('flag:')
-    dic=data
-    LicenseNo=dic['carNo']
-    info=RB.CarinfoSH(cookies=cookies,LicenseNo=LicenseNo)
-    print(info)
+    def test(data):
+        dic=data
+        LicenseNo=dic['carNo']
+
+        info,browser=RB.findcarinfoSH(cookies=cookies,LicenseNo=LicenseNo)
+        baojia=RB.Baojia(browser=browser,dic=dic)
+        print(baojia)
+        browser.close()
+    t1=threading.Thread(target=test,args=(data,))
+    t1.start()'''
 
 
-    info=RB.findcarinfoSH(browser=br,LicenseNo=LicenseNo)
-    baojia=RB.Baojia(browser=br,dic=dic)
-    print(baojia)
-'''
 
 
 
