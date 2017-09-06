@@ -5,6 +5,8 @@ import datetime
 import time
 from selenium.webdriver.common.keys import Keys
 
+
+
 class WarnDeal(object):
     def __init__(self,browser):
         self.browser=browser
@@ -42,20 +44,30 @@ class WarnDeal(object):
     def Baojiawarn(self):
         while True:
             try:
+                #报价警告
                 warn = self.browser.find_element_by_css_selector('html body div.loding_bj.noticeDialog div.float-content')
                 warntext = warn.find_element_by_xpath('./div[1]').text#警告文字
                 errordouble = re.findall('[错误].+[重复投保]', warntext)
                 errornot = re.findall('NORMAL', warntext)  # 无错误
                 if errordouble:#如果显示重复投保
                     self.warndouble(warn=warn,warntext=warntext)
-
                 if errornot:
                     warn.find_element_by_xpath("//a[text()='关闭']").click()
                     break
             except Exception as e:
                 time.sleep(0.5)
 
+    #日期格式错误处理
+    def TimeAlter(self,result,dstr):
+        if result.text=='不合法的日期格式或者日期超出限定范围,需要撤销吗?':
+            result.accept()
+        enddate = self.browser.find_element_by_id('commercialEndDate')
+        enddate.send_keys(Keys.SPACE)
+        startdate=self.browser.find_element_by_id('commercialStartDate')
+        startdate.clear()
+        startdate.send_keys(dstr)
 
+    #处理交强险重复投保
     def warndouble(self,warn,warntext):
         date = re.findall('(\d+)年(\d+)月(\d+)日', warntext)
         c = ''

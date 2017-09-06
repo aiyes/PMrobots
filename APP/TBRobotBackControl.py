@@ -1,11 +1,15 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import requests,time
+import requests,datetime,base64
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
-import base64
+from APP.TBRobotWarnDeal import WarnDeal
+from selenium.webdriver.support import expected_conditions as EC
+
+#----------------------------------------------------------------
+#机器人后台功能
+#----------------------------------------------------------------
 
 #自动验证码识别接口
 def ImageCode(cookiestr):
@@ -30,7 +34,7 @@ def ImageCode(cookiestr):
              'pic': base64_data}
     req2 = requests.post(url=url2, data=data2)
     info = req2.json()
-    return info['result']['code']
+    return str(info['result']['code'])
 
 #根据排量选择车辆排量选择税务车辆类型
 def TaxType(num):
@@ -282,19 +286,19 @@ class Method_Get_TB(object):
         info.append(self.infodic('ZDXLCX', self.detaillist['ZDXLCX'], value))
         return info
 
-#字符字典转换
-def Isdict(data):
-    if isinstance(data,dict):
-        return data
-    if isinstance(data,str):
-        dic = {}
-        datadic = data
-        datadic = datadic[2:-2]
-        datadic = datadic.split(',')
-        for i in datadic:
-            name, amount = i.split(':')
-            dic[name.strip("'")] = amount.strip("'")
-        return dic
+def CommecialDateAlter(browser):
+    now = datetime.datetime.now()
+    date = now + datetime.timedelta(days=30)
+    dstr = date.strftime('%Y-%m-%d 00:00')
+    startdate = browser.find_element_by_id('commercialStartDate')
+    startdate.send_keys(Keys.SPACE)
+    startdate.clear()
+    startdate.send_keys(dstr)
+    result = EC.alert_is_present()(browser)
+    if result:
+        deal = WarnDeal(browser)
+        deal.TimeAlter(result, dstr)
+
 
 
 

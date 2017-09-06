@@ -4,6 +4,7 @@ from APP.TBRobots import Robot
 import time
 import threading
 import requests,re
+from APP.TBconfig import sleeptime
 
 #------------------------------------------
 #开机自动运行部分
@@ -11,14 +12,14 @@ class Run(object):
     def __init__(self):
         self.robots = Robot()
         self.browser, self.cookies ,self.cookiestr= self.robots.login()
+        self.ultilizetime=sleeptime
         self.sleeptime = 0
-        sleeptime = 0
         t1 = threading.Thread(target=self.timesleep)
         t1.start()
 
     def timesleep(self):
         while True:
-            while self.sleeptime <= 480:
+            while self.sleeptime <= self.ultilizetime:
                 time.sleep(1)
                 self.sleeptime += 1
                 if self.sleeptime%10==0:
@@ -33,7 +34,7 @@ class Run(object):
             if righturl in self.browser.current_url:
                 break
             else:
-                RB.robots.login()
+                self.browser, self.cookies, self.cookiestr =self.robots.login()
 
     def set_zero(self):
         self.sleeptime = 0
