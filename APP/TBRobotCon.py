@@ -87,12 +87,14 @@ class Method(object):
                 closethread=threading.Thread(target=windowclose,args=(browser,))
                 if info==False:
                     message={'isSuccess':'450','message':'车辆信息有误'}
+                    closethread.start()
                     return message
                 baojia = self.robots.Baojia(browser=browser, dic=dic)
                 closethread.start()
                 return baojia
             except:
                 if trytimes<3:
+                    trytimes += 1
                     if self.browser.current_url=='http://issue.cpic.com.cn/ecar/view/portal/page/quick_quotation/quick_quotation.html':
                         self.browser.refresh()
                     else:

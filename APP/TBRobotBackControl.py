@@ -115,9 +115,13 @@ class Method_ASK_TB(object):
     def DQX_BJMP(self):pass
     #玻璃险
     def BLX(self):
+        dic={
+            '国产':'0',
+            '进口':'1',
+        }
         self.browser.find_element_by_id('checkbox12').send_keys(Keys.SPACE)
         locality = Select(self.browser.find_element_by_id('locality'))
-        locality.select_by_value(self.detaillist['BLX'])  # 0国产，1进口
+        locality.select_by_value(dic[self.detaillist['BLX']])  # 0国产，1进口
     #自燃险
     def ZRX(self):
         if 'ZRX_BJMP' in self.detaillist:
@@ -158,6 +162,7 @@ class Method_ASK_TB(object):
         self.browser.find_element_by_id('checkbox28').send_keys(Keys.SPACE)
         self.browser.find_element_by_id('rate').send_keys(self.detaillist['ZDXLCX'])  # 0.1-0.3
 
+#获取报价信息
 class Method_Get_TB(object):
     def __init__(self,browser,dic):
         self.browser=browser
@@ -173,119 +178,121 @@ class Method_Get_TB(object):
                 continue
         return info
 
-    def infodic(self,name,amount,value):
+    def infodic(self,code,amount,value,name):
         dic={
-            'prmCode':name,
+            'prmName':name,
+            'prmCode':code,
             'premiumType':amount,
-            'prmValue':value,
+            'prmValue':value.strip(),
         }
         return dic
     #交强险
     def JQX(self,info):
         value=self.browser.find_element_by_id('cipremium').text
-        info.append(self.infodic('JQX', self.detaillist['JQX'], value))
+        info.append(self.infodic('JQX', self.detaillist['JQX'], value,'交强险'))
         return info
     #车船税
     def CCS(self,info):
         value=self.browser.find_element_by_id('taxAmount').text
-        info.append(self.infodic('CCS', self.detaillist['CCS'], value))
+        info.append(self.infodic('CCS', self.detaillist['CCS'], value,'车船税'))
         return info
     #车损险
     def CSX(self,info):
         value=self.quotetable.find_element_by_xpath("./tbody/tr[1]/td[5]").text
-        info.append(self.infodic('CSX',self.detaillist['CSX'],value))
+        info.append(self.infodic('CSX',self.detaillist['CSX'],value,'车损险'))
         return info
     #车损险不计免赔
     def CSX_BJMP(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[1]/td[6]").text
-        info.append(self.infodic('CSX_BJMP', self.detaillist['CSX_BJMP'], value))
+        info.append(self.infodic('CSX_BJMP', self.detaillist['CSX_BJMP'], value,'车损险不计免赔'))
         return info
     #第三方责任险
     def DSFZRX(self,info):
         value=self.quotetable.find_element_by_xpath("./tbody/tr[2]/td[5]").text
-        info.append(self.infodic('DSFZRX', self.detaillist['DSFZRX'], value))
+        info.append(self.infodic('DSFZRX', self.detaillist['DSFZRX'], value,'第三方责任险'))
         return info
     #第三方责任险不计免赔
     def DSFZRX_BJMP(self,info):
         value=self.quotetable.find_element_by_xpath("./tbody/tr[2]/td[6]").text
-        info.append(self.infodic('DSFZRX_BJMP', self.detaillist['DSFZRX_BJMP'], value))
+        info.append(self.infodic('DSFZRX_BJMP', self.detaillist['DSFZRX_BJMP'], value,'第三方责任险不计免赔'))
         return info
     #司机险
     def SJX(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[3]/td[5]").text
-        info.append(self.infodic('SJX', self.detaillist['SJX'], value))
+        info.append(self.infodic('SJX', self.detaillist['SJX'], value,'司机险'))
         return info
     #司机险不计免赔
     def SJX_BJMP(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[3]/td[6]").text
-        info.append(self.infodic('SJX_BJMP', self.detaillist['SJX_BJMP'], value))
+        info.append(self.infodic('SJX_BJMP', self.detaillist['SJX_BJMP'], value,'司机险不计免赔'))
         return info
     #乘客险
     def CKX(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[4]/td[5]").text
-        info.append(self.infodic('CKX', self.detaillist['CKX'], value))
+        info.append(self.infodic('CKX', self.detaillist['CKX'], value,'乘客险'))
         return info
     #乘客险不计免赔
     def CKX_BJMP(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[4]/td[6]").text
-        info.append(self.infodic('CKX_BJMP', self.detaillist['CKX_BJMP'], value))
+        info.append(self.infodic('CKX_BJMP', self.detaillist['CKX_BJMP'], value,'乘客险不计免赔'))
         return info
     #盗抢险
     def DQX(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[5]/td[5]").text
-        info.append(self.infodic('DQX', self.detaillist['DQX'], value))
+        info.append(self.infodic('DQX', self.detaillist['DQX'], value,'盗抢险'))
         return info
     #盗抢险不计免赔
     def DQX_BJMP(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[5]/td[6]").text
-        info.append(self.infodic('DQX_BJMP', self.detaillist['DQX_BJMP'], value))
+        info.append(self.infodic('DQX_BJMP', self.detaillist['DQX_BJMP'], value,'盗抢险不计免赔'))
         return info
     #玻璃险
     def BLX(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[7]/td[5]").text
-        info.append(self.infodic('BLX', self.detaillist['BLX'], value))
+        info.append(self.infodic('BLX', self.detaillist['BLX'], value,'玻璃险'))
         return info
     #自燃险
     def ZRX(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[8]/td[5]").text
-        info.append(self.infodic('ZRX', self.detaillist['ZRX'], value))
+        info.append(self.infodic('ZRX', self.detaillist['ZRX'], value,'玻璃险不计免赔'))
         return info
     #自燃险不计免赔
     def ZRX_BJMP(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[8]/td[6]").text
-        info.append(self.infodic('ZRX_BJMP', self.detaillist['ZRX_BJMP'], value))
+        info.append(self.infodic('ZRX_BJMP', self.detaillist['ZRX_BJMP'], value,'自燃险不计免赔'))
         return info
     #刮痕险
     def GHX(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[9]/td[5]").text
-        info.append(self.infodic('GHX', self.detaillist['GHX'], value))
+        info.append(self.infodic('GHX', self.detaillist['GHX'], value,'刮痕险'))
         return info
     #刮痕险不计免赔
     def GHX_BJMP(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[9]/td[6]").text
-        info.append(self.infodic('GHX_BJMP', self.detaillist['GHX_BJMP'], value))
+        info.append(self.infodic('GHX_BJMP', self.detaillist['GHX_BJMP'], value,'刮痕险不计免赔'))
         return info
 
     def SSX(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[10]/td[5]").text
-        info.append(self.infodic('SSX', self.detaillist['SSX'], value))
+        info.append(self.infodic('SSX', self.detaillist['SSX'], value,'涉水险'))
         return info
 
     def SSX_BJMP(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[10]/td[6]").text
-        info.append(self.infodic('SSX_BJMP', self.detaillist['SSX_BJMP'], value))
+        info.append(self.infodic('SSX_BJMP', self.detaillist['SSX_BJMP'], value,'涉水险不计免赔'))
         return info
-
+    #精神损害责任险
     def JSSHZRX(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[13]/td[5]").text
-        info.append(self.infodic('JSSHZRX', self.detaillist['JSSHZRX'], value))
+        info.append(self.infodic('JSSHZRX', self.detaillist['JSSHZRX'], value,'精神损害责任险'))
         return info
 
     def ZDXLCX(self,info):
         value = self.quotetable.find_element_by_xpath("./tbody/tr[15]/td[5]").text
-        info.append(self.infodic('ZDXLCX', self.detaillist['ZDXLCX'], value))
+        info.append(self.infodic('ZDXLCX', self.detaillist['ZDXLCX'], value,'指定修理厂险'))
         return info
 
+#统一修改时间为30天后
 def CommecialDateAlter(browser):
     now = datetime.datetime.now()
     date = now + datetime.timedelta(days=30)
@@ -298,6 +305,19 @@ def CommecialDateAlter(browser):
     if result:
         deal = WarnDeal(browser)
         deal.TimeAlter(result, dstr)
+
+def VehicleTypeSelect(browser):
+    SeatCountNode = browser.find_element_by_name('seatCount')
+    SeatCount = int(SeatCountNode.get_attribute('value'))
+    vehicleTypeNode = Select(browser.find_element_by_id('vehicleType'))
+    if SeatCount >= 6:
+        count = [10, 20, 36, 1000]
+        value = ['02', '03', '04', '05']
+        for i in range(4):
+            if SeatCount < count[i]:
+                vehicleTypeNode.select_by_value(value[i])
+                break
+
 
 
 

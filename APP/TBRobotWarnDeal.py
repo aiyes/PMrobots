@@ -4,6 +4,7 @@ import re
 import datetime
 import time
 from selenium.webdriver.common.keys import Keys
+from tenacity import retry,stop_after_attempt,wait_fixed
 
 
 
@@ -11,33 +12,33 @@ class WarnDeal(object):
     def __init__(self,browser):
         self.browser=browser
 
+
+
     #车辆信息弹出框处理
     def CarIfWarn(self):
-        starttime = datetime.datetime.now()
-        while True:
-            nowtime=datetime.datetime.now()
-            delta=nowtime-starttime
-            if delta.seconds<5:
-                try:
-                    ModIFT = self.browser.find_element_by_id('carTypeTable')
-                    divtab = self.browser.find_element_by_id('carTypeDialog')
-                    ModIFT.find_element_by_xpath('./tbody/tr[1]/td[1]/input').click()
-                    divtab.find_element_by_class_name('confirm').click()
-                    break
-                except:
-                    time.sleep(0.5)
-                    continue
+        @retry(stop=stop_after_attempt(8), wait=wait_fixed(0.5))
+        def CarIfwarnfirst(browser):
+            ModIFT = browser.find_element_by_id('carTypeTable')
+            divtab = browser.find_element_by_id('carTypeDialog')
+            ModIFT.find_element_by_xpath('./tbody/tr[1]/td[1]/input').click()
+            divtab.find_element_by_class_name('confirm').click()
+
+        @retry(stop=stop_after_attempt(8), wait=wait_fixed(0.5))
+        def CarIfwarnSecond(browser):
+            RiskTable = browser.find_element_by_id('riskInsuranceTable')
+            dialog = browser.find_element_by_id('dialogTemplet')
+            RiskTable.find_element_by_xpath('./tbody/tr[1]/td[1]/input').click()
+            dialog.find_element_by_class_name('confirm').click()
+
+        try:
+            CarIfwarnfirst(browser=self.browser)
+        except:
             return False
 
-        while True:
-            try:
-                RiskTable = self.browser.find_element_by_id('riskInsuranceTable')
-                dialog = self.browser.find_element_by_id('dialogTemplet')
-                RiskTable.find_element_by_xpath('./tbody/tr[1]/td[1]/input').click()
-                dialog.find_element_by_class_name('confirm').click()
-                break
-            except:
-                time.sleep(0.5)
+        try:
+            CarIfwarnSecond(browser=self.browser)
+        except:
+            return False
         return True
 
     #报价警告信息处理

@@ -5,12 +5,13 @@ from selenium import webdriver
 import time,datetime
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
-from APP.TBRobotBackControl import Method_ASK_TB,Method_Get_TB,ImageCode,CommecialDateAlter
+from APP.TBRobotBackControl import Method_ASK_TB,Method_Get_TB,ImageCode,CommecialDateAlter,VehicleTypeSelect
 from APP.TBRobotWarnDeal import WarnDeal
 from APP.TBrobotSqlhelper import Car
 import copy,requests,json
 from selenium.webdriver.support.wait import WebDriverWait
 from APP.TBconfig import loginurl,quoteurl,username,passwd,drivepath,testcert
+from tenacity import retry,wait_fixed,stop_after_attempt
 
 #-----------------------------------------------------
 #机器人核心功能
@@ -73,7 +74,6 @@ class Robot(object):
         browser.delete_all_cookies()
         for cookie in cookies:
             browser.add_cookie(cookie)
-
         browser.get(self.quoteurl)
         #传车牌号
         while True:
@@ -91,7 +91,8 @@ class Robot(object):
         warn=WarnDeal(browser)
         info=warn.CarIfWarn()
         print(info)
-
+        if info:
+            VehicleTypeSelect(browser)
         return info,browser
 
     #外地车信息传入
