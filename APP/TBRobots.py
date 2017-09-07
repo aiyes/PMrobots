@@ -11,7 +11,7 @@ from APP.TBrobotSqlhelper import Car
 import copy,requests,json
 from selenium.webdriver.support.wait import WebDriverWait
 from APP.TBconfig import loginurl,quoteurl,username,passwd,drivepath,testcert
-from tenacity import retry,wait_fixed,stop_after_attempt
+
 
 #-----------------------------------------------------
 #机器人核心功能
@@ -54,8 +54,8 @@ class Robot(object):
     def SendLogMess(self,browser):
         cookie = [item["name"] + "=" + item["value"] for item in self.browser.get_cookies()]
         cookiestr = ';'.join(item for item in cookie)
-        #code=input('please input code')
-        code=ImageCode(cookiestr=cookiestr)#第三方接口自动识别验证码
+        code=input('please input code')
+        #code=ImageCode(cookiestr=cookiestr)#第三方接口自动识别验证码
         username=browser.find_element_by_id('j_username')
         username.clear()
         username.send_keys(self.username)
@@ -146,24 +146,24 @@ class Robot(object):
             ASK=Method_ASK_TB(browser=browser,dic=dic1)
             ASK.Askprice()
             browser.find_element_by_id('premiumTrial').click()
-            while True:
-                try:
-                    deal=WarnDeal(browser)
-                    deal.Baojiawarn()
-                    break
-                except:
-                    time.sleep(0.5)
+
+            deal=WarnDeal(browser)
+            dealflag=deal.Baojiawarn()
+            print('dealflag'+dealflag)
+
             GET=Method_Get_TB(browser=browser,dic=dic2)
             detail=GET.GetPremium()
             info={
-                'isSuccess':200,
-                'detailList':detail
+                '1':{'isSuccess':200,'detailList':detail},
+                '2':{'isSuccess':300,'detailList':detail},
+                '3':{'isSuccess':500,'detailList':'未查询到价格'}
             }
-            return info
+            return info[dealflag]
+
         except Exception as e:
             info={
                 'isSuccess':500,
-                'message':e
+                'message':'服务器异常'
             }
             return info
 

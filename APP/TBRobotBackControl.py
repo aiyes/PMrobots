@@ -61,6 +61,7 @@ class Method_ASK_TB(object):
     #交强险
     def JQX(self):
         self.browser.find_element_by_id('compulsoryInput').send_keys(Keys.SPACE)
+        CompulDateAlter(self.browser)
         capacity = float(self.browser.find_element_by_id('engineCapacity').get_attribute('value'))
         TVType = Select(self.browser.find_element_by_name('taxVehicleType'))
         TVType.select_by_value(TaxType(capacity))
@@ -292,7 +293,7 @@ class Method_Get_TB(object):
         info.append(self.infodic('ZDXLCX', self.detaillist['ZDXLCX'], value,'指定修理厂险'))
         return info
 
-#统一修改时间为30天后
+#统一修改商业险时间为30天后
 def CommecialDateAlter(browser):
     now = datetime.datetime.now()
     date = now + datetime.timedelta(days=30)
@@ -304,8 +305,23 @@ def CommecialDateAlter(browser):
     result = EC.alert_is_present()(browser)
     if result:
         deal = WarnDeal(browser)
-        deal.TimeAlter(result, dstr)
+        deal.CommecialTimeAlter(result, dstr)
 
+#修改交强险时间为30天后
+def CompulDateAlter(browser):
+    now = datetime.datetime.now()
+    date = now + datetime.timedelta(days=30)
+    dstr = date.strftime('%Y-%m-%d 00:00')
+    startdate = browser.find_element_by_id('compulsoryStartDate')
+    startdate.send_keys(Keys.SPACE)
+    startdate.clear()
+    startdate.send_keys(dstr)
+    result = EC.alert_is_present()(browser)
+    if result:
+        deal = WarnDeal(browser)
+        deal.CompusoryTimeAlter(result, dstr)
+
+#根据座位数量改变车辆性质
 def VehicleTypeSelect(browser):
     SeatCountNode = browser.find_element_by_name('seatCount')
     SeatCount = int(SeatCountNode.get_attribute('value'))
