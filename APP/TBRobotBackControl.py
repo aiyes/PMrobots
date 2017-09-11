@@ -1,11 +1,12 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 from selenium.webdriver.common.keys import Keys
-import requests,datetime,base64
+import requests,datetime,base64,time,threading
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
 from APP.TBRobotWarnDeal import WarnDeal
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 
 #----------------------------------------------------------------
 #机器人后台功能
@@ -44,6 +45,13 @@ def TaxType(num):
         if table[i]>=num:
             return tablevalue[i]
 
+#去除千分位
+def DropDot(string):
+    stringlist=string.split(',')
+    newstring=''
+    for i in stringlist:
+        newstring+=''.join(i)
+    return newstring
 
 class Method_ASK_TB(object):
     def __init__(self,browser,dic):
@@ -195,7 +203,7 @@ class Method_Get_TB(object):
     #车船税
     def CCS(self,info):
         value=self.browser.find_element_by_id('taxAmount').text
-        info.append(self.infodic('CCS', self.detaillist['CCS'], value,'车船税'))
+        info.append(self.infodic('CCS', self.detaillist['CCS'], DropDot(value),'车船税'))
         return info
     #车损险
     def CSX(self,info):
@@ -293,6 +301,7 @@ class Method_Get_TB(object):
         info.append(self.infodic('ZDXLCX', self.detaillist['ZDXLCX'], value,'指定修理厂险'))
         return info
 
+
 #统一修改商业险时间为30天后
 def CommecialDateAlter(browser):
     now = datetime.datetime.now()
@@ -333,6 +342,51 @@ def VehicleTypeSelect(browser):
             if SeatCount < count[i]:
                 vehicleTypeNode.select_by_value(value[i])
                 break
+
+#根据车主姓名改变车辆用途
+def Useage(browser):
+    owner = browser.find_element_by_name('ownerName')
+    ownername = owner.get_attribute('value')
+    if len(ownername) > 5:
+        useage = Select(browser.find_element_by_id('usage'))
+        useage.select_by_value('301')  # 企业非营运车辆
+        WebDriverWait(browser, 4, 0.5).until(lambda browser: browser.find_element_by_id('usageSubdivs'))
+        useageSub = Select(browser.find_element_by_id('usageSubdivs'))
+        useageSub.select_by_value('23')  # 企业客车，其他
+
+#预核保流程
+def YuHeBao(browser):
+    def WindowClose(browser):
+        browser.close()
+    close=threading.Thread(target=WindowClose,args=(browser,))
+    try:
+        browser.find_element_by_id("linkInsure").click()
+        time.sleep(2)
+        WebDriverWait(browser, 4, 0.5).until(lambda browser: browser.find_element_by_id('next'))
+        browser.find_element_by_id("next").click()
+        time.sleep(2)
+        WebDriverWait(browser, 4, 0.5).until(lambda browser: browser.find_element_by_id('next'))
+        browser.find_element_by_id("next").click()
+        time.sleep(2)
+        WebDriverWait(browser, 4, 0.5).until(lambda browser: browser.find_element_by_id('insuranceInfoMobilePhone'))
+        mobile=browser.find_element_by_id('insuranceInfoMobilePhone')
+        mobile.clear()
+        mobile.send_keys('13608815861')
+        address=browser.find_element_by_name('address')
+        address.clear()
+        address.send_keys('中国上海')
+        browser.find_element_by_id('yhb').click()
+        while True:
+            dialog = browser.find_element_by_id('questionDialog')
+            warntext = dialog.find_element_by_xpath("./div[@class='float-content']/div[@id='questionTxt']").text
+            if warntext:
+                close.start()
+                return warntext
+            else:
+                time.sleep(0.5)
+    except:
+        close.start()
+        return '未获取到核保信息'
 
 
 

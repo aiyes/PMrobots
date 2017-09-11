@@ -2,10 +2,10 @@
 # -*- coding: UTF-8 -*-
 
 from selenium import webdriver
-import time,datetime
+import time,datetime,threading
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
-from APP.TBRobotBackControl import Method_ASK_TB,Method_Get_TB,ImageCode,CommecialDateAlter,VehicleTypeSelect
+from APP.TBRobotBackControl import Method_ASK_TB,Method_Get_TB,ImageCode,CommecialDateAlter,VehicleTypeSelect,Useage,YuHeBao
 from APP.TBRobotWarnDeal import WarnDeal
 from APP.TBrobotSqlhelper import Car
 import copy,requests,json
@@ -27,6 +27,13 @@ class Robot(object):
         self.cert=testcert
         self.driverpath=drivepath
         self.browser = webdriver.Chrome(self.driverpath)
+
+    def CloseWindow(self,browser):
+        def Close(browser):
+            browser.close()
+
+        t1=threading.Thread(target=Close,args=(browser,))
+        t1.start()
 
     def login(self):
 
@@ -68,31 +75,40 @@ class Robot(object):
 
     #沪牌车信息传入
     def findcarinfoSH(self,cookies,LicenseNo):
-        #打开新窗口
         browser = webdriver.Chrome(self.driverpath)
-        browser.get(self.quoteurl)
-        browser.delete_all_cookies()
-        for cookie in cookies:
-            browser.add_cookie(cookie)
-        browser.get(self.quoteurl)
-        #传车牌号
-        while True:
-            try:
-                license=browser.find_element_by_id('plateNo')
-                license.clear()
-                license.send_keys(LicenseNo)
-                break
-            except:
-                time.sleep(0.5)
-        print('carinfo input success')
+        try:
+            #打开新窗口
+            browser.get(self.quoteurl)
+            browser.delete_all_cookies()
+            for cookie in cookies:
+                browser.add_cookie(cookie)
+            browser.get(self.quoteurl)
+            #传车牌号
+            while True:
+                try:
+                    license=browser.find_element_by_id('plateNo')
+                    value = license.get_attribute('value')
+                    while value!=LicenseNo:#验证传输是否正确
+                        license.clear()
+                        license.send_keys(LicenseNo)
+                        time.sleep(0.8)
+                        value = license.get_attribute('value')
+                    break
+                except:
+                    time.sleep(0.5)
 
-        browser.find_element_by_id('motorcycleTypeSearch').click()
+            browser.find_element_by_id('motorcycleTypeSearch').click()
 
-        warn=WarnDeal(browser)
-        info=warn.CarIfWarn()
-        print(info)
-        if info:
-            VehicleTypeSelect(browser)
+            warn=WarnDeal(browser)
+            info=warn.CarIfWarn()
+            print(info)
+            if info:
+                Useage(browser)
+                VehicleTypeSelect(browser)
+            else:browser.close()
+        except:
+            browser.close()
+            info=False
         return info,browser
 
     #外地车信息传入
@@ -149,14 +165,15 @@ class Robot(object):
 
             deal=WarnDeal(browser)
             dealflag=deal.Baojiawarn()
-            print('dealflag'+dealflag)
-
             GET=Method_Get_TB(browser=browser,dic=dic2)
             detail=GET.GetPremium()
+            #print('Hebaozhong...')#报价中
+            #warntext=YuHeBao(browser)
+            self.CloseWindow(browser)
             info={
-                '1':{'isSuccess':200,'detailList':detail},
-                '2':{'isSuccess':300,'detailList':detail},
-                '3':{'isSuccess':500,'detailList':'未查询到价格'}
+                '1':{'isSuccess':200,'message':'','detailList':detail},
+                '2':{'isSuccess':300,'message':'','detailList':detail},
+                '3':{'isSuccess':500,'message':'未查询到价格'}
             }
             return info[dealflag]
 
@@ -165,6 +182,7 @@ class Robot(object):
                 'isSuccess':500,
                 'message':'服务器异常'
             }
+            self.CloseWindow(browser)
             return info
 
     #上海车辆信息查询

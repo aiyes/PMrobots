@@ -84,13 +84,10 @@ class Method(object):
         while True:
             try:
                 info,browser = self.robots.findcarinfoSH(cookies=self.cookies, LicenseNo=dic['carNo'])
-                closethread=threading.Thread(target=windowclose,args=(browser,))
                 if info==False:
                     message={'isSuccess':'450','message':'车辆信息有误'}
-                    closethread.start()
                     return message
                 baojia = self.robots.Baojia(browser=browser, dic=dic)
-                closethread.start()
                 return baojia
             except:
                 if trytimes<3:

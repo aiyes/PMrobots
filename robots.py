@@ -1,11 +1,16 @@
 from flask import Flask,request,jsonify
-from APP.TBRobots import Robot
+from gevent import monkey
+from gevent.pywsgi import WSGIServer
+from geventwebsocket.handler import WebSocketHandler
 import json
 import time
 from APP.TBRobotCon import Method,is_ok
 
-
+#monkey.patch_all()
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
+#app.config.update(DEBUG=True)
+
 
 @app.route('/')
 def hello_world():
@@ -23,7 +28,7 @@ def Ask_Price_SH():
         info=MD.AskPrice_SH_MN(dic=j_data)
         return jsonify(info)
     except Exception as e:
-        return jsonify({'flag': 500, 'infomation': e})
+        return jsonify({'flag': 500, 'infomation': ''})
 
 
 @app.route('/askpricewd',methods=['POST'])
@@ -41,3 +46,5 @@ def Ask_Price_WD():
 if __name__ == '__main__':
     app.run()
     #app.run(host='192.168.98.142')
+    #http_server = WSGIServer(('127.0.0.1', 5000), app, handler_class=WebSocketHandler)
+    #http_server.serve_forever()

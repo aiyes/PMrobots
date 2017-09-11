@@ -45,7 +45,7 @@ class WarnDeal(object):
     def Baojiawarn(self):
         #报价警告
         flag='1'#1正常，2需要人工处理，3失败
-        for i in range(10):
+        for i in range(20):
             try:
                 warn = self.browser.find_element_by_css_selector('html body div.loding_bj.noticeDialog div.float-content')
                 warntext = warn.find_element_by_xpath('./div[1]').text  # 警告文字
