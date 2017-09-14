@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 from selenium.webdriver.common.keys import Keys
-import requests,datetime,base64,time,threading
+import requests,datetime,base64,time,threading,re
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
 from APP.TBRobotWarnDeal import WarnDeal
@@ -301,6 +301,20 @@ class Method_Get_TB(object):
         info.append(self.infodic('ZDXLCX', self.detaillist['ZDXLCX'], value,'指定修理厂险'))
         return info
 
+def TimeInfoDic():
+    now = datetime.datetime.now()
+    tomorrow = now + datetime.timedelta(days=1)
+    nextday = now + datetime.timedelta(days=2)
+    TimeInfo = {'now':now,
+        'stBackEndDate': '%s-12-31' % (now.year - 1),
+        'stBackStartDate': '%s-12-31' % (now.year - 1),
+        'stLateFeeEndDate': tomorrow.strftime('%Y-%m-%d'),
+        'stLateFeeStartDate': tomorrow.strftime('%Y-%m-%d'),
+        'stStartDate': nextday.strftime('%Y-%m-%d 00:00'),
+        'stEndDate': (nextday + datetime.timedelta(days=365)).strftime('%Y-%m-%d 00:00'),
+        'stTaxStartDate': '%s-01-01' % now.year,
+        'stTaxEndDate': '%s-12-31' % now.year, }
+    return TimeInfo
 
 #统一修改商业险时间为30天后
 def CommecialDateAlter(browser):
@@ -390,6 +404,154 @@ def YuHeBao(browser):
 
 
 
+#交强险报价信息生成函数
+def BJinformTax(info,ModelData,DetailData,taxtype):
+    Timeinfo=TimeInfoDic()
+    FinaInfo={'meta': {},'redata':{
+        'commercial':False,
+        'compulsory' : True,
+        'compulsoryInsuransVo':{
+            'aidingFund': '',
+            'aidingFundProportion': '',
+            'backAmount': '',
+            'cipremium': None,
+            'ecompensationRate': '',
+            'exceedDaysCount': '',
+            'insuranceQueryCode': '',
+            'lateFee': '',
+            'payableAmount': '',
+            'reductionAmount': '',
+            'stBackEndDate': Timeinfo['stBackEndDate'],  # 补缴止期
+            'stBackStartDate': Timeinfo['stBackStartDate'],  # 补缴起期
+            'stEndDate':Timeinfo['stEndDate'] ,  # 保险止期
+            'stLateFeeEndDate': Timeinfo['stLateFeeEndDate'],  # 滞纳金止期
+            'stLateFeeStartDate' :Timeinfo['stLateFeeStartDate'],#滞纳金起期
+            'stStartDate':Timeinfo['stStartDate'],#保险起期
+            'stTaxEndDate':Timeinfo['stTaxEndDate'],#车船税止期
+            'stTaxStartDate':Timeinfo['stTaxStartDate'],#车船税起期
+            'taxAmount':None,
+            'taxBureauName':'',
+            'taxPaidNo':'',
+            'taxpayerName':info['result']['ownerName'],
+            'taxpayerNo':'123321',
+            'taxpayerSubstRecno':'',
+            'taxpayerType':'2',#纳税人类型
+            'taxType':taxtype,#纳税类型
+            'taxVehicleType':TaxType(float(ModelData['result']['models'][0]['displacement'])),
+            'totalWeight':'',
+            'vehicleClaimType':''},
+        'ecarvo':{
+            'actualValue':int(ModelData['result']['models'][0]['purchaseValue'])*0.8,
+            'address':'',
+            'carModelRiskLevel':'',
+            'carVIN':info['result']['carVIN'],
+            'certNo':'123321',
+            'certType':'2',
+            'emptyWeight':ModelData['result']['models'][0]['fullWeight']+'.00',
+            'engineCapacity':float(ModelData['result']['models'][0]['displacement']),
+            'engineNo':info['result']['engineNo'],
+            'factoryType':ModelData['result']['models'][0]['name'],
+            'holderTelphone':'',
+            'inType':'',
+            'jqVehicleClaimType':'',
+            'jyFuelType':ModelData['result']['models'][0]['jyFuelType'],
+            'lastyearModelcode':'',
+            'lastyearModeltype':'',
+            'lastyearPurchaseprice':'',
+            'loan':'0',
+            'modelType':DetailData['result']['models'][0]['modelType'],
+            'moldCharacterCode':DetailData['result']['models'][0]['moldCharacterCode'],
+            'negotiatedValue':int(ModelData['result']['models'][0]['purchaseValue'])*0.8,
+            'oriEngineCapacity':DetailData['result']['models'][0]['displacement'],
+            'ownerName':info['result']['ownerName'],
+            'ownerProp':'1',
+            'plateColor':'1',
+            'plateless':False,
+            'plateNo':info['result']['plateNo'],
+            'plateType':'02',
+            'power':ModelData['result']['models'][0]['power'],
+            'producingArea':DetailData['result']['models'][0]['producingArea'],
+            'purchasePrice':DetailData['result']['models'][0]['purchaseValue'],
+            'reductionType':'0',
+            'seatCount':ModelData['result']['models'][0]['seatCount'],
+            'shortcutCode':DetailData['result']['models'][0]['shortcutCode'],
+            'specialVehicleIden':'',
+            'stCertificationDate':'',
+            'stChangeRegisterDate':'',
+            'stInvoiceDate':'',
+            'stRegisterDate':info['result']['stRegisterDate'],
+            'syVehicleClaimType':'',
+            'taxCustomerType':'1',
+            'tonnage':'',
+            'tpyRiskflagCode':ModelData['result']['models'][0]['tpyRiskflagCode'],
+            'tpyRiskflagName':ModelData['result']['models'][0]['tpyRiskflagName'],
+            'transferCompanyName':'',
+            'usage':'101',
+            'vehiclePowerJY':ModelData['result']['models'][0]['vehiclepowerjy'],
+            'vehiclePurpose':ModelData['result']['models'][0]['kind'],
+            'vehicleType':ModelData['result']['models'][0]['kind']},
+        'insuredVo':{
+            'certificateCode':'123321',
+            'certificateType':'2',
+            'name':info['result']['ownerName'],
+            'relationship':'1'},
+        'inType':None,
+        'platformVo':{
+            'benchmarkRiskPremium':DetailData['result']['models'][0]['pureRiskPremium'],
+            'brand':DetailData['result']['models'][0]['modelType'],
+            'brandCode':DetailData['result']['models'][0]['brandCode'],
+            'carName':DetailData['result']['models'][0]['carName'],
+            'configType':DetailData['result']['models'][0]['configType'],
+            'modelCode':DetailData['result']['models'][0]['hyVehicleCode'],
+            'noticeType':'',
+            'pureRiskPremium':DetailData['result']['models'][0]['pureRiskPremium'],
+            'pureRiskPremiumFlag':DetailData['result']['models'][0]['pureRiskPremiumFlag'],
+            'series':DetailData['result']['models'][0]['series'],
+            'seriesCode':''},
+        'quotationNo':''}}
+    return FinaInfo
 
 
+#在交强险警告中寻找信息
+def FindIfInCiWarn(Warn):
+    message = Warn['message']['message']
+    try:
+        com = re.findall('该车已在(.+)存在有效保单记录', message)  # 有投保记录
+        notax = re.findall('不能以纳税投保', message)#无纳税记录
+        if notax:
+            flag=False
+            info = {'prm_end_time': '', 'insurer_com': '', }
+            return info,flag
+        elif com:
+            flag=True
+            dateput = re.findall('－(\d+)年(\d+)月(\d+)日', message)
+            date = datetime.datetime(int(dateput[0][0]), int(dateput[0][1]), int(dateput[0][2]))
+            info={'prm_end_time':date,'insurer_com':com,}
+            return info,flag
+    except:
+        flag=True
+        info={'prm_end_time':'','insurer_com':'',}
+        return info,flag
 
+#根据查询到的信息组建车辆信息查询返回json串
+def CarinfoSHDic(car_data_database):
+    return_message = {
+            'status': 200,
+            "brandNameBC": car_data_database['brand_name'],
+            "carOwnerBC": car_data_database['car_owner'],
+            "completeKerbMassNewBC": car_data_database['complete_kerb_mass'],
+            "engineNoBC": car_data_database['engine_no'],
+            "enrollDateBC": car_data_database['enroll_date'],
+            "exhaustScaleBC": car_data_database['exhaust_scale'],
+            "frameNoBC": car_data_database['frame_no'],
+            "id": car_data_database['id'],
+            "insurerCom": car_data_database['insurer_com'],
+            "licenseNoBC": car_data_database['license_no'],
+            "modelCodeBC": car_data_database['model_code'],
+            "prmEndTime": car_data_database['prm_end_time'],
+            "purchasePriceBC": car_data_database['purchase_price'],
+            "purchasePriceLBBC": car_data_database['purchase_price_lb'],
+            "searchSequenceNoBI": car_data_database['search_sequence_no'],
+            "seatCountBC": car_data_database['seat_count'],
+            }
+    return return_message

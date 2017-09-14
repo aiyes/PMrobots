@@ -41,7 +41,22 @@ def Ask_Price_WD():
         info=MD.AskPrice_WD_MN(dic=j_data)
         return jsonify(info)
     except Exception as e:
-        return jsonify({'flag':500,'infomation':e})
+        return jsonify({'flag':500,'infomation':'请求错误'})
+
+@app.route('/carinfosh',methods=['POST'])
+def Carinfo():
+    is_ok()
+    try:
+        data = request.get_data()
+        j_data = json.loads(data.decode())
+        print(j_data)
+        MD=Method()
+        info=MD.CarInfoFind(LicenseNo=j_data['LicenseNo'])
+        return jsonify(info)
+    except:
+        return jsonify({'flag': 500, 'infomation': '请求错误'})
+
+
 
 if __name__ == '__main__':
     app.run()
